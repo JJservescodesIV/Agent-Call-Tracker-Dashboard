@@ -1,0 +1,1932 @@
+<!DOCTYPE html><html lang="en"><head><meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://code.jquery.com https://unpkg.com https://d3js.org https://threejs.org https://cdn.plot.ly https://stackpath.bootstrapcdn.com https://maps.googleapis.com https://cdn.tailwindcss.com https://ajax.googleapis.com https://kit.fontawesome.com https://cdn.datatables.net https://maxcdn.bootstrapcdn.com https://code.highcharts.com https://tako-static-assets-production.s3.amazonaws.com https://www.youtube.com https://fonts.googleapis.com https://fonts.gstatic.com https://pfst.cf2.poecdn.net https://puc.poecdn.net https://i.imgur.com https://wikimedia.org https://*.icons8.com https://*.giphy.com https://picsum.photos https://images.unsplash.com; frame-src 'self' https://www.youtube.com https://trytako.com; child-src 'self'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests; block-all-mixed-content;">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Agent Call Tracker - Upgraded Dashboard</title>
+  <style>
+    :root {
+      --bg: #f5f7fa;
+      --card: #ffffff;
+      --text: #333333;
+      --muted: #666666;
+      --muted-2: #4a5568;
+      --primary: #667eea;
+      --primary-600: #5a67d8;
+      --success: #48bb78;
+      --success-600: #38a169;
+      --danger: #f56565;
+      --danger-600: #e53e3e;
+      --warning: #ed8936;
+      --border: #e2e8f0;
+      --shadow: rgba(0, 0, 0, 0.1);
+      --shadow-2: rgba(0, 0, 0, 0.15);
+      --tab-border: #e2e8f0;
+      --table-header: #f7fafc;
+      --badge-inbound: #ebf4ff;
+      --badge-inbound-text: #4259d6;
+      --badge-outbound: #e6fffa;
+      --badge-outbound-text: #2c7a7b;
+      --badge-internal: #fffaf0;
+      --badge-internal-text: #b7791f;
+      --badge-resolved: #e6ffed;
+      --badge-resolved-text: #2f855a;
+      --badge-escalated: #fff5f5;
+      --badge-escalated-text: #c53030;
+      --badge-voicemail: #edf2f7;
+      --badge-voicemail-text: #4a5568;
+      --badge-noanswer: #fffbea;
+      --badge-noanswer-text: #975a16;
+      --badge-callback: #e6fffb;
+      --badge-callback-text: #0b8c7a;
+      --link: #2b6cb0;
+    }
+    body.dark {
+      --bg: #0f172a;
+      --card: #111827;
+      --text: #e5e7eb;
+      --muted: #a1a1aa;
+      --muted-2: #9ca3af;
+      --primary: #8da2fb;
+      --primary-600: #7b91f4;
+      --success: #34d399;
+      --success-600: #10b981;
+      --danger: #f87171;
+      --danger-600: #ef4444;
+      --warning: #f59e0b;
+      --border: #1f2937;
+      --shadow: rgba(0, 0, 0, 0.5);
+      --shadow-2: rgba(0, 0, 0, 0.6);
+      --tab-border: #1f2937;
+      --table-header: #111827;
+      --badge-inbound: #1f2937;
+      --badge-inbound-text: #93c5fd;
+      --badge-outbound: #064e3b;
+      --badge-outbound-text: #6ee7b7;
+      --badge-internal: #3f2d0c;
+      --badge-internal-text: #fbbf24;
+      --badge-resolved: #064e3b;
+      --badge-resolved-text: #6ee7b7;
+      --badge-escalated: #3f1d1d;
+      --badge-escalated-text: #fca5a5;
+      --badge-voicemail: #1f2937;
+      --badge-voicemail-text: #cbd5e1;
+      --badge-noanswer: #3f2d0c;
+      --badge-noanswer-text: #f59e0b;
+      --badge-callback: #083344;
+      --badge-callback-text: #67e8f9;
+      --link: #93c5fd;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+
+    header {
+      background: linear-gradient(135deg, var(--primary) 0%, #764ba2 100%);
+      color: white;
+      padding: 20px 0;
+      margin-bottom: 24px;
+      box-shadow: 0 2px 4px var(--shadow);
+    }
+    .header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    h1 {
+      font-size: 2rem;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+    }
+    .header-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 2px 10px var(--shadow);
+      transition: transform 0.2s, box-shadow 0.2s;
+      border: 1px solid var(--border);
+    }
+    .card:hover { transform: translateY(-2px); box-shadow: 0 6px 24px var(--shadow-2); }
+
+    .card h2 {
+      color: var(--primary);
+      margin-bottom: 12px;
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--text);
+      margin: 6px 0;
+    }
+    .stat-label { color: var(--muted); font-size: 0.9rem; }
+
+    .form-group { margin-bottom: 12px; }
+    label { display: block; margin-bottom: 6px; color: var(--muted-2); font-weight: 600; }
+    input, select, button, textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 14px;
+      background: transparent;
+      color: var(--text);
+    }
+    textarea { resize: vertical; min-height: 70px; }
+
+    input::placeholder, textarea::placeholder { color: var(--muted); }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+    }
+
+    button {
+      background: var(--primary);
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: 700;
+      transition: background 0.2s, transform 0.05s ease;
+    }
+    button:hover { background: var(--primary-600); }
+    button:active { transform: translateY(1px); }
+
+    .button-secondary { background: var(--success); }
+    .button-secondary:hover { background: var(--success-600); }
+    .button-danger { background: var(--danger); }
+    .button-danger:hover { background: var(--danger-600); }
+    .button-ghost {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    .row { display: flex; gap: 12px; }
+    .row > * { flex: 1; }
+
+    .tab-navigation {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+      border-bottom: 2px solid var(--tab-border);
+      overflow-x: auto;
+    }
+    .tab {
+      padding: 10px 16px;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s;
+      color: var(--text);
+      white-space: nowrap;
+      user-select: none;
+    }
+    .tab.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+      font-weight: 800;
+    }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    .filter-section {
+      background: rgba(0,0,0,0.03);
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      border: 1px solid var(--border);
+    }
+    .filter-section > div { min-width: 200px; flex: 1; }
+
+    .table-responsive { width: 100%; overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; min-width: 800px; }
+    th, td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    th {
+      background-color: var(--table-header);
+      font-weight: 800;
+      color: var(--muted-2);
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+    tr:hover { background-color: rgba(0,0,0,0.03); }
+    .sortable { cursor: pointer; user-select: none; }
+    .sort-indicator { margin-left: 6px; opacity: 0.6; }
+
+    .chart-container { margin-top: 10px; position: relative; height: 320px; }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1.6;
+    }
+    .badge.inbound { background: var(--badge-inbound); color: var(--badge-inbound-text); }
+    .badge.outbound { background: var(--badge-outbound); color: var(--badge-outbound-text); }
+    .badge.internal { background: var(--badge-internal); color: var(--badge-internal-text); }
+
+    .badge.resolved { background: var(--badge-resolved); color: var(--badge-resolved-text); }
+    .badge.escalated { background: var(--badge-escalated); color: var(--badge-escalated-text); }
+    .badge.voicemail { background: var(--badge-voicemail); color: var(--badge-voicemail-text); }
+    .badge.noanswer { background: var(--badge-noanswer); color: var(--badge-noanswer-text); }
+    .badge.callback { background: var(--badge-callback); color: var(--badge-callback-text); }
+
+    .pagination {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 8px; margin-top: 12px; flex-wrap: wrap; color: var(--muted);
+    }
+    .pagination-controls { display: flex; gap: 6px; align-items: center; }
+    .pagination button { padding: 6px 10px; font-size: 13px; }
+    .page-size { width: 120px; }
+
+    .modal {
+      display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5);
+      z-index: 1000; padding: 16px; overflow-y: auto;
+    }
+    .modal-content {
+      background: var(--card); color: var(--text);
+      width: 100%; max-width: 560px; margin: 60px auto; padding: 20px;
+      border-radius: 12px; position: relative; border: 1px solid var(--border);
+      box-shadow: 0 10px 30px var(--shadow-2);
+    }
+    .close {
+      position: absolute; top: 10px; right: 14px; font-size: 28px;
+      cursor: pointer; color: var(--muted);
+    }
+    .close:hover { color: var(--text); }
+
+    .toast {
+      position: fixed; left: 50%; transform: translateX(-50%);
+      bottom: 20px; background: var(--card); color: var(--text);
+      border: 1px solid var(--border); box-shadow: 0 6px 20px var(--shadow-2);
+      padding: 12px 16px; border-radius: 10px; z-index: 2000; display: none;
+      gap: 10px; align-items: center; font-size: 14px;
+    }
+    .toast.show { display: inline-flex; }
+    .toast .action { background: transparent; border: none; color: var(--link); cursor: pointer; font-weight: 800; }
+
+    .helper {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 4px;
+    }
+
+    a { color: var(--link); }
+
+    @media (max-width: 768px) {
+      .dashboard-grid { grid-template-columns: 1fr; }
+      .filter-section { flex-direction: column; }
+      .filter-section > div { width: 100%; }
+      h1 { font-size: 1.6rem; }
+    }
+
+    @media print {
+      header, .tab-navigation, .filter-section, .button-danger, .button-secondary, .button-ghost, .pagination, .toast { display: none !important; }
+      .card { box-shadow: none; border: none; }
+      body { background: #ffffff; color: #000000; }
+      .container { max-width: none; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container header-row" role="banner">
+      <h1>Agent Call Tracker Dashboard</h1>
+      <div class="header-actions" role="toolbar" aria-label="Header actions">
+        <button id="themeToggle" class="button-ghost" type="button" aria-pressed="false">Toggle Dark Mode</button>
+        <button id="clearDataBtn" class="button-danger" type="button" title="Clear all agents and calls">Clear All Data</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- Summary Statistics -->
+    <div class="dashboard-grid" aria-live="polite">
+      <div class="card">
+        <h2>Today's Calls</h2>
+        <div class="stat-value" id="todayCalls">0</div>
+        <div class="stat-label">Total calls logged today</div>
+      </div>
+      <div class="card">
+        <h2>Weekly Average</h2>
+        <div class="stat-value" id="weeklyAvg">0</div>
+        <div class="stat-label">Calls per day (last 7 days)</div>
+      </div>
+      <div class="card">
+        <h2>Monthly Average</h2>
+        <div class="stat-value" id="monthlyAvg">0</div>
+        <div class="stat-label">Calls per day (last 30 days)</div>
+      </div>
+      <div class="card">
+        <h2>Active Agents</h2>
+        <div class="stat-value" id="activeAgents">0</div>
+        <div class="stat-label">Agents with calls today</div>
+      </div>
+    </div>
+
+    <!-- Tab Navigation -->
+    <div class="tab-navigation" role="tablist" aria-label="Main sections">
+      <div class="tab active" role="tab" aria-selected="true" tabindex="0" onclick="switchTab(this,'log')">Log Calls</div>
+      <div class="tab" role="tab" aria-selected="false" tabindex="0" onclick="switchTab(this,'analytics')">Analytics</div>
+      <div class="tab" role="tab" aria-selected="false" tabindex="0" onclick="switchTab(this,'agents')">Agent Management</div>
+      <div class="tab" role="tab" aria-selected="false" tabindex="0" onclick="switchTab(this,'reports')">Reports</div>
+    </div>
+
+    <!-- Log Calls Tab -->
+    <div id="log" class="tab-content active" role="tabpanel">
+      <div class="card">
+        <h2>Log New Call</h2>
+        <form id="callForm" novalidate="">
+          <div class="form-group">
+            <label for="agentSelect">Agent</label>
+            <select id="agentSelect" required="">
+              <option value="">Select Agent</option>
+            </select>
+            <div class="helper">Add agents in the Agent Management tab if none appear here.</div>
+          </div>
+          <div class="row">
+            <div class="form-group">
+              <label for="callDate">Date</label>
+              <input type="date" id="callDate" required="">
+            </div>
+            <div class="form-group">
+              <label for="callTime">Time</label>
+              <input type="time" id="callTime" required="">
+            </div>
+            <div class="form-group">
+              <label for="callDuration">Duration (minutes)</label>
+              <input type="number" id="callDuration" min="1" step="1" required="" placeholder="e.g., 5">
+            </div>
+          </div>
+          <div class="row">
+            <div class="form-group">
+              <label for="callType">Call Type</label>
+              <select id="callType" required="">
+                <option value="Inbound">Inbound</option>
+                <option value="Outbound">Outbound</option>
+                <option value="Internal">Internal</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="callOutcome">Outcome</label>
+              <select id="callOutcome" required="">
+                <option value="Resolved">Resolved</option>
+                <option value="Escalated">Escalated</option>
+                <option value="No Answer">No Answer</option>
+                <option value="Voicemail">Voicemail</option>
+                <option value="Callback Scheduled">Callback Scheduled</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="callNotes">Notes (optional)</label>
+            <textarea id="callNotes" placeholder="Brief call description, ticket number, etc."></textarea>
+          </div>
+          <button type="submit">Log Call</button>
+        </form>
+      </div>
+
+      <div class="card" style="margin-top: 16px;">
+        <h2>Recent Calls</h2>
+
+        <div class="filter-section" id="recentCallsFilters">
+          <div>
+            <label for="rcFilterAgent">Agent</label>
+            <select id="rcFilterAgent">
+              <option value="all">All Agents</option>
+            </select>
+          </div>
+          <div>
+            <label for="rcFilterType">Type</label>
+            <select id="rcFilterType">
+              <option value="all">All Types</option>
+              <option>Inbound</option>
+              <option>Outbound</option>
+              <option>Internal</option>
+            </select>
+          </div>
+          <div>
+            <label for="rcFilterOutcome">Outcome</label>
+            <select id="rcFilterOutcome">
+              <option value="all">All Outcomes</option>
+              <option>Resolved</option>
+              <option>Escalated</option>
+              <option>No Answer</option>
+              <option>Voicemail</option>
+              <option>Callback Scheduled</option>
+            </select>
+          </div>
+          <div>
+            <label for="rcStartDate">Start Date</label>
+            <input type="date" id="rcStartDate">
+          </div>
+          <div>
+            <label for="rcEndDate">End Date</label>
+            <input type="date" id="rcEndDate">
+          </div>
+          <div>
+            <label for="rcSearch">Search Notes</label>
+            <input type="text" id="rcSearch" placeholder="Search text in notes">
+          </div>
+          <div style="flex:0; display:flex; gap:8px;">
+            <button id="rcApplyFilters" type="button" class="button-secondary">Apply</button>
+            <button id="rcResetFilters" type="button" class="button-ghost">Reset</button>
+          </div>
+          <div style="flex:0; min-width:160px;">
+            <label for="rcPageSize">Rows per page</label>
+            <select id="rcPageSize" class="page-size">
+              <option>10</option>
+              <option>25</option>
+              <option>50</option>
+              <option>100</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table id="recentCallsTable" aria-describedby="recent calls">
+            <thead>
+              <tr>
+                <th class="sortable" data-sort="agent">Agent <span class="sort-indicator">↕</span></th>
+                <th class="sortable" data-sort="date">Date <span class="sort-indicator">↕</span></th>
+                <th class="sortable" data-sort="time">Time <span class="sort-indicator">↕</span></th>
+                <th class="sortable" data-sort="duration">Duration <span class="sort-indicator">↕</span></th>
+                <th class="sortable" data-sort="type">Type <span class="sort-indicator">↕</span></th>
+                <th class="sortable" data-sort="outcome">Outcome <span class="sort-indicator">↕</span></th>
+                <th>Notes</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="recentCallsBody"></tbody>
+          </table>
+        </div>
+
+        <div class="pagination" id="rcPagination">
+          <div class="pagination-info" id="rcPaginationInfo">Showing 0 of 0</div>
+          <div class="pagination-controls">
+            <button id="rcPrev" class="button-ghost" type="button">Prev</button>
+            <div id="rcPageIndicator">Page 1</div>
+            <button id="rcNext" class="button-ghost" type="button">Next</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Analytics Tab -->
+    <div id="analytics" class="tab-content" role="tabpanel" aria-hidden="true">
+      <div class="filter-section">
+        <div>
+          <label for="analyticsStartDate">Start Date</label>
+          <input type="date" id="analyticsStartDate">
+        </div>
+        <div>
+          <label for="analyticsEndDate">End Date</label>
+          <input type="date" id="analyticsEndDate">
+        </div>
+        <div>
+          <label for="analyticsAgent">Agent</label>
+          <select id="analyticsAgent">
+            <option value="all">All Agents</option>
+          </select>
+        </div>
+        <div style="flex:0;">
+          <button id="analyticsUpdateBtn" type="button">Update Analytics</button>
+        </div>
+      </div>
+
+      <div class="dashboard-grid">
+        <div class="card">
+          <h2>Total Calls</h2>
+          <div class="stat-value" id="analyticsTotalCalls">0</div>
+          <div class="stat-label">In selected period</div>
+        </div>
+        <div class="card">
+          <h2>Average Duration</h2>
+          <div class="stat-value" id="analyticsAvgDuration">0</div>
+          <div class="stat-label">Minutes per call</div>
+        </div>
+        <div class="card">
+          <h2>Call Volume Trend</h2>
+          <div class="stat-value" id="analyticsVolumeTrend">--</div>
+          <div class="stat-label">Compared to previous period</div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top: 16px;">
+        <h2>Call Volume Over Time</h2>
+        <div class="chart-container"><canvas id="callChart"></canvas></div>
+      </div>
+
+      <div class="card" style="margin-top: 16px;">
+        <h2>Type Breakdown</h2>
+        <div class="chart-container"><canvas id="typeDonut"></canvas></div>
+      </div>
+
+      <div class="card" style="margin-top: 16px;">
+        <h2>Agent Performance</h2>
+        <div class="table-responsive">
+          <table id="performanceTable">
+            <thead>
+              <tr>
+                <th>Agent</th>
+                <th>Total Calls</th>
+                <th>Avg Duration</th>
+                <th>Inbound</th>
+                <th>Outbound</th>
+                <th>Internal</th>
+              </tr>
+            </thead>
+            <tbody id="performanceBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Agent Management Tab -->
+    <div id="agents" class="tab-content" role="tabpanel" aria-hidden="true">
+      <div class="card">
+        <h2>Add New Agent</h2>
+        <form id="agentForm" novalidate="">
+          <div class="row">
+            <div class="form-group">
+              <label for="agentName">Agent Name</label>
+              <input type="text" id="agentName" required="">
+            </div>
+            <div class="form-group">
+              <label for="agentEmail">Email</label>
+              <input type="email" id="agentEmail" required="" placeholder="name@example.com">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="agentDepartment">Department</label>
+            <input type="text" id="agentDepartment" required="">
+          </div>
+          <button type="submit" class="button-secondary">Add Agent</button>
+        </form>
+      </div>
+
+      <div class="card" style="margin-top: 16px;">
+        <h2>Agent List</h2>
+        <div class="table-responsive">
+          <table id="agentTable">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Department</th>
+                <th>Total Calls</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="agentTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reports Tab -->
+    <div id="reports" class="tab-content" role="tabpanel" aria-hidden="true">
+      <div class="card">
+        <h2>Generate Reports</h2>
+        <div class="row">
+          <div class="form-group">
+            <label for="reportType">Report Type</label>
+            <select id="reportType">
+              <option value="daily">Daily Summary</option>
+              <option value="weekly">Weekly Report</option>
+              <option value="monthly">Monthly Report</option>
+              <option value="agent">Agent Performance</option>
+              <option value="custom">Custom Period</option>
+            </select>
+          </div>
+          <div class="form-group" id="reportAgentGroup" style="display:none;">
+            <label for="reportAgentSelect">Agent</label>
+            <select id="reportAgentSelect">
+              <option value="">Select Agent</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="reportTypeFilter">Type Filter</label>
+            <select id="reportTypeFilter">
+              <option value="all">All Types</option>
+              <option>Inbound</option>
+              <option>Outbound</option>
+              <option>Internal</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="reportOutcomeFilter">Outcome Filter</label>
+            <select id="reportOutcomeFilter">
+              <option value="all">All Outcomes</option>
+              <option>Resolved</option>
+              <option>Escalated</option>
+              <option>No Answer</option>
+              <option>Voicemail</option>
+              <option>Callback Scheduled</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="customDateRange" class="row" style="display:none;">
+          <div class="form-group">
+            <label for="reportStartDate">Start Date</label>
+            <input type="date" id="reportStartDate">
+          </div>
+          <div class="form-group">
+            <label for="reportEndDate">End Date</label>
+            <input type="date" id="reportEndDate">
+          </div>
+          <div class="form-group" style="align-self:flex-end;">
+            <label>&nbsp;</label>
+            <button id="reportSetThisMonth" type="button" class="button-ghost">This Month</button>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="form-group" style="align-self:center;">
+            <label><input type="checkbox" id="reportIncludeDetails"> Include detailed call list</label>
+          </div>
+        </div>
+
+        <div class="row" style="margin-top: 6px;">
+          <button id="generateReportBtn" class="button-secondary" type="button">Generate Report</button>
+          <button id="exportCsvBtn" type="button">Export Calls CSV</button>
+          <button id="printReportBtn" type="button" class="button-ghost">Print/Save PDF</button>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top: 16px; display:none;" id="reportOutput">
+        <h2>Report Results</h2>
+        <div id="reportContent"></div>
+      </div>
+
+      <div class="card" style="margin-top: 16px;">
+        <h2>Import/Export Data</h2>
+        <div class="row">
+          <div class="form-group">
+            <label for="importFile">Import Calls from CSV</label>
+            <input type="file" id="importFile" accept=".csv,text/csv">
+            <div class="helper">Headers supported: Agent,Date,Time,Duration,Type,Outcome,Notes</div>
+          </div>
+        </div>
+        <div class="row" style="gap:8px;">
+          <button id="importCsvBtn" type="button">Import CSV</button>
+          <button id="exportAgentsBtn" type="button" class="button-ghost">Export Agents CSV</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Call Modal -->
+  <div id="editModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="editCallTitle">
+    <div class="modal-content">
+      <span class="close" onclick="closeEditModal()" aria-label="Close">×</span>
+      <h2 id="editCallTitle">Edit Call</h2>
+      <form id="editCallForm" novalidate="">
+        <input type="hidden" id="editCallId">
+        <div class="form-group">
+          <label for="editAgentSelect">Agent</label>
+          <select id="editAgentSelect" required="">
+            <option value="">Select Agent</option>
+          </select>
+        </div>
+        <div class="row">
+          <div class="form-group">
+            <label for="editCallDate">Date</label>
+            <input type="date" id="editCallDate" required="">
+          </div>
+          <div class="form-group">
+            <label for="editCallTime">Time</label>
+            <input type="time" id="editCallTime" required="">
+          </div>
+          <div class="form-group">
+            <label for="editCallDuration">Duration (minutes)</label>
+            <input type="number" id="editCallDuration" min="1" required="">
+          </div>
+        </div>
+        <div class="row">
+          <div class="form-group">
+            <label for="editCallType">Call Type</label>
+            <select id="editCallType" required="">
+              <option>Inbound</option>
+              <option>Outbound</option>
+              <option>Internal</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="editCallOutcome">Outcome</label>
+            <select id="editCallOutcome" required="">
+              <option>Resolved</option>
+              <option>Escalated</option>
+              <option>No Answer</option>
+              <option>Voicemail</option>
+              <option>Callback Scheduled</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="editCallNotes">Notes (optional)</label>
+          <textarea id="editCallNotes"></textarea>
+        </div>
+        <button type="submit">Update Call</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Edit Agent Modal -->
+  <div id="editAgentModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="editAgentTitle">
+    <div class="modal-content">
+      <span class="close" onclick="closeEditAgentModal()" aria-label="Close">×</span>
+      <h2 id="editAgentTitle">Edit Agent</h2>
+      <form id="editAgentForm" novalidate="">
+        <input type="hidden" id="editAgentId">
+        <div class="row">
+          <div class="form-group">
+            <label for="editAgentName">Agent Name</label>
+            <input type="text" id="editAgentName" required="">
+          </div>
+          <div class="form-group">
+            <label for="editAgentEmail">Email</label>
+            <input type="email" id="editAgentEmail" required="">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="editAgentDepartment">Department</label>
+          <input type="text" id="editAgentDepartment" required="">
+        </div>
+        <button type="submit" class="button-secondary">Save Changes</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast" role="status" aria-live="polite">
+    <span id="toastMessage"></span>
+    <button id="toastAction" class="action" type="button" style="display:none;"></button>
+  </div>
+
+  <script>
+    // Storage and state
+    let agents = [];
+    let calls = [];
+    const STORAGE_KEYS = { agents: 'agents', calls: 'calls', theme: 'theme' };
+
+    // Recent Calls table state
+    const rcState = {
+      filters: { agentId: 'all', type: 'all', outcome: 'all', start: '', end: '', search: '' },
+      sort: { field: 'datetime', dir: 'desc' }, // fields: agent, date, time, duration, type, outcome, datetime
+      page: 1,
+      pageSize: 10
+    };
+
+    // Toast state for Undo
+    let lastDeletedCall = null;
+    let toastTimer = null;
+
+    // Utils
+    const $ = (sel) => document.querySelector(sel);
+    const $$ = (sel) => document.querySelectorAll(sel);
+
+    function saveLS(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); } catch(e) { console.error('LocalStorage save error', e); } }
+    function loadLS(key, fallback = []) { try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch(e) { console.error('LocalStorage load error', e); return fallback; } }
+
+    function toLocalDateInput(d = new Date()) {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    }
+    function parseLocalDate(dateStr) {
+      // dateStr expected "YYYY-MM-DD"
+      const [y, m, d] = dateStr.split('-').map(Number);
+      return new Date(y, m - 1, d);
+    }
+    function formatDateDisplay(dateStr) {
+      if (!dateStr) return '-';
+      const date = parseLocalDate(dateStr);
+      return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+    }
+    function clamp(n, min, max) { return Math.max(min, Math.min(max, n)); }
+    function debounce(fn, delay = 200) {
+      let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), delay); };
+    }
+    function safeNumber(n, def = 0) { const v = Number(n); return Number.isFinite(v) ? v : def; }
+
+    function showToast(message, actionText = '', onAction = null, timeoutMs = 4000) {
+      const toast = $('#toast');
+      $('#toastMessage').textContent = message;
+      const actionBtn = $('#toastAction');
+      if (actionText && typeof onAction === 'function') {
+        actionBtn.textContent = actionText;
+        actionBtn.style.display = 'inline';
+        actionBtn.onclick = () => { onAction(); hideToast(); };
+      } else {
+        actionBtn.style.display = 'none';
+        actionBtn.onclick = null;
+      }
+      toast.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(hideToast, timeoutMs);
+    }
+    function hideToast() {
+      $('#toast').classList.remove('show');
+      const btn = $('#toastAction');
+      btn.onclick = null;
+      btn.style.display = 'none';
+    }
+
+    function callTypeBadge(type) {
+      const cls = (type || '').toLowerCase();
+      return `<span class="badge ${cls}">${type || '-'}</span>`;
+    }
+    function outcomeBadge(outcome) {
+      const map = {
+        'resolved': 'resolved',
+        'escalated': 'escalated',
+        'voicemail': 'voicemail',
+        'no answer': 'noanswer',
+        'callback scheduled': 'callback'
+      };
+      const key = (outcome || '').toLowerCase();
+      const cls = map[key] || 'voicemail';
+      return `<span class="badge ${cls}">${outcome || '-'}</span>`;
+    }
+
+    // Theme
+    function initTheme() {
+      const saved = localStorage.getItem(STORAGE_KEYS.theme) || 'light';
+      if (saved === 'dark') {
+        document.body.classList.add('dark');
+        $('#themeToggle').setAttribute('aria-pressed', 'true');
+      } else {
+        $('#themeToggle').setAttribute('aria-pressed', 'false');
+      }
+      $('#themeToggle').onclick = () => {
+        document.body.classList.toggle('dark');
+        const isDark = document.body.classList.contains('dark');
+        localStorage.setItem(STORAGE_KEYS.theme, isDark ? 'dark' : 'light');
+        $('#themeToggle').setAttribute('aria-pressed', String(isDark));
+      };
+    }
+
+    // Tabs
+    function switchTab(el, tabName) {
+      $$('.tab').forEach(tab => {
+        tab.classList.remove('active');
+        tab.setAttribute('aria-selected', 'false');
+      });
+      $$('.tab-content').forEach(c => {
+        c.classList.remove('active');
+        c.setAttribute('aria-hidden', 'true');
+      });
+      el.classList.add('active');
+      el.setAttribute('aria-selected', 'true');
+      const panel = document.getElementById(tabName);
+      panel.classList.add('active');
+      panel.setAttribute('aria-hidden', 'false');
+
+      if (tabName === 'analytics') updateAnalytics();
+      if (tabName === 'agents') displayAgents();
+      if (tabName === 'log') updateRecentCallsUI(true);
+    }
+
+    // Data Load / Save / Migration
+    function loadData() {
+      agents = loadLS(STORAGE_KEYS.agents, []);
+      calls = loadLS(STORAGE_KEYS.calls, []);
+      // Migrate legacy calls to include outcome
+      let migrated = false;
+      for (const c of calls) {
+        if (!('outcome' in c)) { c.outcome = 'Resolved'; migrated = true; }
+      }
+      if (migrated) saveLS(STORAGE_KEYS.calls, calls);
+    }
+
+    function clearAllData() {
+      if (!confirm('This will permanently delete all agents and calls. Continue?')) return;
+      localStorage.removeItem(STORAGE_KEYS.agents);
+      localStorage.removeItem(STORAGE_KEYS.calls);
+      agents = [];
+      calls = [];
+      loadAgentsIntoUI();
+      updateDashboard();
+      updateRecentCallsUI(true);
+      updateAnalytics();
+      displayAgents();
+      showToast('All data cleared');
+    }
+
+    // Agents
+    function handleAgentSubmit(e) {
+      e.preventDefault();
+      const name = $('#agentName').value.trim();
+      const email = $('#agentEmail').value.trim().toLowerCase();
+      const department = $('#agentDepartment').value.trim();
+
+      if (!name || !email || !department) {
+        showToast('Please fill in all agent fields.');
+        return;
+      }
+      if (agents.some(a => a.email.toLowerCase() === email)) {
+        showToast('An agent with this email already exists.');
+        return;
+      }
+
+      const agent = { id: Date.now().toString(), name, email, department, createdAt: new Date().toISOString() };
+      agents.push(agent);
+      saveLS(STORAGE_KEYS.agents, agents);
+      $('#agentForm').reset();
+      loadAgentsIntoUI();
+      displayAgents();
+      showToast('Agent added');
+    }
+
+    function openEditAgentModal(agentId) {
+      const agent = agents.find(a => a.id === agentId);
+      if (!agent) return;
+      $('#editAgentId').value = agent.id;
+      $('#editAgentName').value = agent.name;
+      $('#editAgentEmail').value = agent.email;
+      $('#editAgentDepartment').value = agent.department;
+      $('#editAgentModal').style.display = 'block';
+    }
+    function closeEditAgentModal() {
+      $('#editAgentModal').style.display = 'none';
+    }
+    function handleEditAgentSubmit(e) {
+      e.preventDefault();
+      const id = $('#editAgentId').value;
+      const name = $('#editAgentName').value.trim();
+      const email = $('#editAgentEmail').value.trim().toLowerCase();
+      const department = $('#editAgentDepartment').value.trim();
+
+      if (!name || !email || !department) {
+        showToast('Please fill in all agent fields.');
+        return;
+      }
+      if (agents.some(a => a.id !== id && a.email.toLowerCase() === email)) {
+        showToast('Another agent already uses this email.');
+        return;
+      }
+
+      const idx = agents.findIndex(a => a.id === id);
+      if (idx !== -1) {
+        agents[idx] = { ...agents[idx], name, email, department };
+        saveLS(STORAGE_KEYS.agents, agents);
+        closeEditAgentModal();
+        loadAgentsIntoUI();
+        displayAgents();
+        updateRecentCallsUI(true);
+        showToast('Agent updated');
+      }
+    }
+
+    function deleteAgent(agentId) {
+      const agent = agents.find(a => a.id === agentId);
+      const agentName = agent ? agent.name : 'this agent';
+      const count = calls.filter(c => c.agentId === agentId).length;
+      if (!confirm(`Delete ${agentName}? This will also delete ${count} call record(s).`)) return;
+
+      agents = agents.filter(a => a.id !== agentId);
+      calls = calls.filter(c => c.agentId !== agentId);
+      saveLS(STORAGE_KEYS.agents, agents);
+      saveLS(STORAGE_KEYS.calls, calls);
+      loadAgentsIntoUI();
+      displayAgents();
+      updateDashboard();
+      updateRecentCallsUI(true);
+      updateAnalytics();
+      showToast('Agent and related calls deleted');
+    }
+
+    function displayAgents() {
+      const tbody = $('#agentTableBody');
+      tbody.innerHTML = '';
+      agents.forEach(agent => {
+        const agentCalls = calls.filter(call => call.agentId === agent.id);
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${agent.name}</td>
+          <td>${agent.email}</td>
+          <td>${agent.department}</td>
+          <td>${agentCalls.length}</td>
+          <td style="white-space:nowrap;">
+            <button type="button" class="button-ghost" style="padding:6px 10px; font-size:12px;" onclick="openEditAgentModal('${agent.id}')">Edit</button>
+            <button type="button" class="button-danger" style="padding:6px 10px; font-size:12px;" onclick="deleteAgent('${agent.id}')">Delete</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function loadAgentsIntoUI() {
+      const selects = [
+        { id: 'agentSelect', mode: 'select' },
+        { id: 'editAgentSelect', mode: 'select' },
+        { id: 'analyticsAgent', mode: 'all' },
+        { id: 'rcFilterAgent', mode: 'all' },
+        { id: 'reportAgentSelect', mode: 'select' },
+      ];
+      for (const { id, mode } of selects) {
+        const sel = document.getElementById(id);
+        if (!sel) continue;
+        const prevVal = sel.value;
+        sel.innerHTML = '';
+        if (mode === 'all') {
+          const opt = document.createElement('option');
+          opt.value = 'all';
+          opt.textContent = 'All Agents';
+          sel.appendChild(opt);
+        } else {
+          const opt = document.createElement('option');
+          opt.value = '';
+          opt.textContent = 'Select Agent';
+          sel.appendChild(opt);
+        }
+        agents.forEach(agent => {
+          const opt = document.createElement('option');
+          opt.value = agent.id;
+          opt.textContent = agent.name;
+          sel.appendChild(opt);
+        });
+        if (prevVal) sel.value = prevVal;
+      }
+    }
+
+    // Calls
+    function handleCallSubmit(e) {
+      e.preventDefault();
+      const agentId = $('#agentSelect').value;
+      const date = $('#callDate').value;
+      const time = $('#callTime').value;
+      const duration = safeNumber($('#callDuration').value, 0);
+      const type = $('#callType').value;
+      const outcome = $('#callOutcome').value;
+      const notes = $('#callNotes').value.trim();
+
+      if (!agentId) return showToast('Please select an agent');
+      if (!date || !time || duration <= 0) return showToast('Please provide date, time, and duration > 0');
+
+      const call = {
+        id: Date.now().toString(),
+        agentId,
+        date,
+        time,
+        duration: Math.round(duration),
+        type,
+        outcome,
+        notes,
+        timestamp: new Date().toISOString()
+      };
+      calls.push(call);
+      saveLS(STORAGE_KEYS.calls, calls);
+
+      $('#callForm').reset();
+      $('#callDate').value = toLocalDateInput(new Date());
+      $('#callTime').value = new Date().toTimeString().slice(0,5);
+
+      updateDashboard();
+      updateRecentCallsUI(true);
+      showToast('Call logged');
+    }
+
+    function getDerivedCalls(allCalls) {
+      return allCalls.map(c => {
+        const agent = agents.find(a => a.id === c.agentId);
+        const agentName = agent ? agent.name : 'Unknown';
+        const dt = new Date(`${c.date}T${(c.time || '00:00')}`);
+        return { ...c, agentName, datetime: dt };
+      });
+    }
+
+    function getFilteredSortedCalls() {
+      const f = rcState.filters;
+      let filtered = getDerivedCalls(calls).filter(c => {
+        if (f.agentId !== 'all' && c.agentId !== f.agentId) return false;
+        if (f.type !== 'all' && c.type !== f.type) return false;
+        if (f.outcome !== 'all' && c.outcome !== f.outcome) return false;
+        if (f.start) {
+          const start = parseLocalDate(f.start);
+          const cd = parseLocalDate(c.date);
+          if (cd < start) return false;
+        }
+        if (f.end) {
+          const end = parseLocalDate(f.end);
+          const cd = parseLocalDate(c.date);
+          if (cd > end) return false;
+        }
+        if (f.search) {
+          const s = f.search.toLowerCase();
+          if (!((c.notes || '').toLowerCase().includes(s))) return false;
+        }
+        return true;
+      });
+
+      const dir = rcState.sort.dir === 'asc' ? 1 : -1;
+      const field = rcState.sort.field;
+      filtered.sort((a,b) => {
+        let va, vb;
+        switch(field) {
+          case 'agent': va = a.agentName; vb = b.agentName; break;
+          case 'date': va = a.date; vb = b.date; break;
+          case 'time': va = a.time; vb = b.time; break;
+          case 'duration': va = a.duration; vb = b.duration; break;
+          case 'type': va = a.type; vb = b.type; break;
+          case 'outcome': va = a.outcome; vb = b.outcome; break;
+          case 'datetime':
+          default: va = a.datetime; vb = b.datetime; break;
+        }
+        if (va == null && vb == null) return 0;
+        if (va == null) return 1;
+        if (vb == null) return -1;
+        if (va < vb) return -1 * dir;
+        if (va > vb) return 1 * dir;
+        return 0;
+      });
+
+      return filtered;
+    }
+
+    function updateRecentCallsUI(resetPage = false) {
+      if (resetPage) rcState.page = 1;
+      const filtered = getFilteredSortedCalls();
+      const total = filtered.length;
+      const pageSize = rcState.pageSize;
+      const totalPages = Math.max(1, Math.ceil(total / pageSize));
+      rcState.page = clamp(rcState.page, 1, totalPages);
+      const startIdx = (rcState.page - 1) * pageSize;
+      const pageItems = filtered.slice(startIdx, startIdx + pageSize);
+
+      const tbody = $('#recentCallsBody');
+      tbody.innerHTML = '';
+      for (const c of pageItems) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${c.agentName}</td>
+          <td>${formatDateDisplay(c.date)}</td>
+          <td>${c.time || '-'}</td>
+          <td>${c.duration} min</td>
+          <td>${callTypeBadge(c.type)}</td>
+          <td>${outcomeBadge(c.outcome)}</td>
+          <td>${c.notes ? escapeHtml(c.notes) : '-'}</td>
+          <td style="white-space:nowrap;">
+            <button type="button" style="padding:6px 10px; font-size:12px; margin-right:6px;" onclick="editCall('${c.id}')">Edit</button>
+            <button type="button" class="button-danger" style="padding:6px 10px; font-size:12px;" onclick="deleteCall('${c.id}')">Delete</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      }
+
+      // Pagination UI
+      $('#rcPaginationInfo').textContent = `Showing ${pageItems.length} of ${total}`;
+      $('#rcPageIndicator').textContent = `Page ${rcState.page} of ${totalPages}`;
+      $('#rcPrev').disabled = (rcState.page <= 1);
+      $('#rcNext').disabled = (rcState.page >= totalPages);
+
+      // Header sort indicators (optional visual cue)
+      $$('#recentCallsTable th.sortable').forEach(th => {
+        const f = th.getAttribute('data-sort');
+        const indicator = th.querySelector('.sort-indicator');
+        if (!indicator) return;
+        if (f === rcState.sort.field) {
+          indicator.textContent = rcState.sort.dir === 'asc' ? '↑' : '↓';
+          indicator.style.opacity = 1;
+        } else {
+          indicator.textContent = '↕';
+          indicator.style.opacity = 0.6;
+        }
+      });
+    }
+
+    function editCall(callId) {
+      const call = calls.find(c => c.id === callId);
+      if (!call) return;
+      $('#editCallId').value = call.id;
+      $('#editAgentSelect').value = call.agentId;
+      $('#editCallDate').value = call.date;
+      $('#editCallTime').value = call.time;
+      $('#editCallDuration').value = call.duration;
+      $('#editCallType').value = call.type;
+      $('#editCallOutcome').value = call.outcome || 'Resolved';
+      $('#editCallNotes').value = call.notes || '';
+      $('#editModal').style.display = 'block';
+    }
+    function closeEditModal() { $('#editModal').style.display = 'none'; }
+
+    function handleEditCallSubmit(e) {
+      e.preventDefault();
+      const id = $('#editCallId').value;
+      const idx = calls.findIndex(c => c.id === id);
+      if (idx === -1) return;
+
+      const agentId = $('#editAgentSelect').value;
+      const date = $('#editCallDate').value;
+      const time = $('#editCallTime').value;
+      const duration = safeNumber($('#editCallDuration').value, 0);
+      const type = $('#editCallType').value;
+      const outcome = $('#editCallOutcome').value;
+      const notes = $('#editCallNotes').value.trim();
+
+      if (!agentId || !date || !time || duration <= 0) {
+        showToast('Please provide all required fields (duration > 0).');
+        return;
+      }
+
+      calls[idx] = { ...calls[idx], agentId, date, time, duration: Math.round(duration), type, outcome, notes };
+      saveLS(STORAGE_KEYS.calls, calls);
+      closeEditModal();
+      updateDashboard();
+      updateRecentCallsUI();
+      updateAnalytics();
+      showToast('Call updated');
+    }
+
+    function deleteCall(callId) {
+      const call = calls.find(c => c.id === callId);
+      if (!call) return;
+      if (!confirm('Delete this call?')) return;
+      lastDeletedCall = call;
+      calls = calls.filter(c => c.id !== callId);
+      saveLS(STORAGE_KEYS.calls, calls);
+      updateDashboard();
+      updateRecentCallsUI();
+      updateAnalytics();
+      showToast('Call deleted', 'Undo', () => {
+        if (lastDeletedCall) {
+          calls.push(lastDeletedCall);
+          saveLS(STORAGE_KEYS.calls, calls);
+          updateDashboard();
+          updateRecentCallsUI();
+          updateAnalytics();
+          showToast('Restored');
+          lastDeletedCall = null;
+        }
+      });
+    }
+
+    function escapeHtml(s) {
+      return (s || '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+    }
+
+    // Dashboard
+    function updateDashboard() {
+      const todayStr = toLocalDateInput(new Date());
+      const todayCalls = calls.filter(c => c.date === todayStr);
+      $('#todayCalls').textContent = todayCalls.length;
+
+      const now = new Date();
+      const weekAgo = new Date(now); weekAgo.setDate(now.getDate() - 6); // last 7 days inclusive
+      const monthAgo = new Date(now); monthAgo.setDate(now.getDate() - 29); // last 30 days inclusive
+
+      const weekCalls = calls.filter(c => parseLocalDate(c.date) >= new Date(weekAgo.toDateString()));
+      const monthCalls = calls.filter(c => parseLocalDate(c.date) >= new Date(monthAgo.toDateString()));
+
+      $('#weeklyAvg').textContent = (weekCalls.length / 7).toFixed(1);
+      $('#monthlyAvg').textContent = (monthCalls.length / 30).toFixed(1);
+
+      const activeAgentsToday = new Set(todayCalls.map(c => c.agentId)).size;
+      $('#activeAgents').textContent = activeAgentsToday;
+    }
+
+    // Analytics
+    function updateAnalytics() {
+      const startDateVal = $('#analyticsStartDate').value;
+      const endDateVal = $('#analyticsEndDate').value;
+      const selectedAgent = $('#analyticsAgent').value;
+
+      // Default to last 30 days if not set
+      let startDate = startDateVal ? parseLocalDate(startDateVal) : (() => { const d = new Date(); d.setDate(d.getDate() - 29); return d; })();
+      let endDate = endDateVal ? parseLocalDate(endDateVal) : new Date();
+
+      const filtered = getDerivedCalls(calls).filter(c => {
+        const cd = parseLocalDate(c.date);
+        return cd >= new Date(startDate.toDateString()) && cd <= new Date(endDate.toDateString()) &&
+          (selectedAgent === 'all' || c.agentId === selectedAgent);
+      });
+
+      $('#analyticsTotalCalls').textContent = filtered.length;
+      const avgDuration = filtered.length ? (filtered.reduce((s, c) => s + c.duration, 0) / filtered.length) : 0;
+      $('#analyticsAvgDuration').textContent = avgDuration.toFixed(1);
+
+      // Trend versus previous period
+      const daysDiff = Math.floor((endDate - startDate) / (1000*60*60*24)) + 1;
+      const prevStart = new Date(startDate); prevStart.setDate(startDate.getDate() - daysDiff);
+      const prevEnd = new Date(startDate); prevEnd.setDate(startDate.getDate() - 1);
+
+      const prev = getDerivedCalls(calls).filter(c => {
+        const cd = parseLocalDate(c.date);
+        return cd >= new Date(prevStart.toDateString()) && cd <= new Date(prevEnd.toDateString()) &&
+          (selectedAgent === 'all' || c.agentId === selectedAgent);
+      });
+
+      let trend = 0;
+      if (prev.length === 0 && filtered.length > 0) trend = 100;
+      else if (prev.length > 0) trend = ((filtered.length - prev.length) / prev.length * 100);
+      $('#analyticsVolumeTrend').textContent = `${trend > 0 ? '+' : ''}${trend.toFixed(1)}%`;
+
+      updatePerformanceTable(filtered);
+      renderCallBarChart(filtered, 'callChart');
+      renderTypeDonutChart(filtered, 'typeDonut');
+    }
+
+    function updatePerformanceTable(filteredCalls) {
+      const tbody = $('#performanceBody');
+      tbody.innerHTML = '';
+      const stats = {};
+      agents.forEach(a => {
+        stats[a.id] = { name: a.name, total: 0, duration: 0, inbound: 0, outbound: 0, internal: 0 };
+      });
+      filteredCalls.forEach(c => {
+        if (!stats[c.agentId]) return;
+        stats[c.agentId].total += 1;
+        stats[c.agentId].duration += c.duration;
+        const k = c.type ? c.type.toLowerCase() : 'inbound';
+        if (stats[c.agentId][k] != null) stats[c.agentId][k] += 1;
+      });
+      Object.values(stats).forEach(s => {
+        const avg = s.total ? (s.duration / s.total).toFixed(1) : '0.0';
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${s.name}</td>
+          <td>${s.total}</td>
+          <td>${avg} min</td>
+          <td>${s.inbound}</td>
+          <td>${s.outbound}</td>
+          <td>${s.internal}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Charts (vanilla Canvas)
+    let chartResize = debounce(() => {
+      if ($('#analytics').classList.contains('active')) {
+        updateAnalytics();
+      }
+    }, 200);
+    window.addEventListener('resize', chartResize);
+
+    function renderCallBarChart(callsArray, canvasId) {
+      const canvas = document.getElementById(canvasId);
+      const ctx = canvas.getContext('2d');
+
+      // Group by date
+      const byDate = {};
+      callsArray.forEach(c => { byDate[c.date] = (byDate[c.date] || 0) + 1; });
+
+      const dates = Object.keys(byDate).sort();
+      const values = dates.map(d => byDate[d]);
+      const max = values.length ? Math.max(...values) : 0;
+
+      canvas.width = canvas.clientWidth;
+      canvas.height = 320;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      if (dates.length === 0) {
+        ctx.fillStyle = '#999';
+        ctx.font = '14px system-ui, Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('No data for selected period', canvas.width / 2, canvas.height / 2);
+        return;
+      }
+
+      const paddingLeft = 36;
+      const paddingBottom = 24;
+      const chartH = canvas.height - paddingBottom - 10;
+      const chartW = canvas.width - paddingLeft - 10;
+      const barW = chartW / dates.length;
+
+      // Axes
+      ctx.strokeStyle = '#8884';
+      ctx.beginPath();
+      ctx.moveTo(paddingLeft, 10);
+      ctx.lineTo(paddingLeft, canvas.height - paddingBottom);
+      ctx.lineTo(canvas.width - 10, canvas.height - paddingBottom);
+      ctx.stroke();
+
+      // Bars
+      for (let i = 0; i < dates.length; i++) {
+        const val = values[i];
+        const h = max ? (val / max) * (chartH - 10) : 0;
+        const x = paddingLeft + i * barW + barW * 0.1;
+        const y = canvas.height - paddingBottom - h;
+        const w = barW * 0.8;
+
+        ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--primary').trim() || '#667eea';
+        ctx.fillRect(x, y, w, h);
+
+        // Value
+        ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--text').trim() || '#333';
+        ctx.font = '12px system-ui, Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(String(val), x + w / 2, y - 4);
+
+        // X labels (sparse if many points)
+        if (dates.length <= 31 || i % Math.ceil(dates.length / 10) === 0) {
+          ctx.save();
+          ctx.translate(x + w / 2, canvas.height - 6);
+          ctx.rotate(-Math.PI / 4);
+          ctx.textAlign = 'right';
+          ctx.font = '10px system-ui, Arial';
+          ctx.fillText(formatDateDisplay(dates[i]), 0, 0);
+          ctx.restore();
+        }
+      }
+
+      // Y-axis ticks
+      ctx.fillStyle = '#888';
+      ctx.font = '10px system-ui, Arial';
+      ctx.textAlign = 'right';
+      for (let i = 0; i <= 5; i++) {
+        const tickVal = Math.round((max / 5) * i);
+        const y = canvas.height - paddingBottom - (chartH / 5) * i;
+        ctx.fillText(String(tickVal), paddingLeft - 6, y + 3);
+      }
+    }
+
+    function renderTypeDonutChart(callsArray, canvasId) {
+      const counts = { Inbound: 0, Outbound: 0, Internal: 0 };
+      callsArray.forEach(c => { if (counts[c.type] != null) counts[c.type]++; });
+
+      const canvas = document.getElementById(canvasId);
+      const ctx = canvas.getContext('2d');
+      canvas.width = canvas.clientWidth;
+      canvas.height = 320;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const total = Object.values(counts).reduce((a,b) => a + b, 0);
+      if (total === 0) {
+        ctx.fillStyle = '#999';
+        ctx.font = '14px system-ui, Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('No data for selected period', canvas.width / 2, canvas.height / 2);
+        return;
+      }
+
+      const colors = {
+        Inbound: getComputedStyle(document.body).getPropertyValue('--badge-inbound-text').trim() || '#4259d6',
+        Outbound: getComputedStyle(document.body).getPropertyValue('--badge-outbound-text').trim() || '#2c7a7b',
+        Internal: getComputedStyle(document.body).getPropertyValue('--badge-internal-text').trim() || '#b7791f',
+      };
+
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
+      const radius = Math.min(cx, cy) - 20;
+      const inner = radius * 0.6;
+
+      let start = -Math.PI / 2;
+      Object.entries(counts).forEach(([key, val]) => {
+        const angle = (val / total) * Math.PI * 2;
+        const end = start + angle;
+        // slice
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.arc(cx, cy, radius, start, end);
+        ctx.closePath();
+        ctx.fillStyle = colors[key];
+        ctx.globalAlpha = 0.8;
+        ctx.fill();
+        ctx.globalAlpha = 1;
+
+        // next
+        start = end;
+      });
+
+      // inner hole
+      ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--card').trim() || '#fff';
+      ctx.beginPath();
+      ctx.arc(cx, cy, inner, 0, Math.PI*2);
+      ctx.fill();
+
+      // labels
+      ctx.textAlign = 'center';
+      ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--text').trim() || '#333';
+      ctx.font = '700 14px system-ui, Arial';
+      ctx.fillText('Type Breakdown', cx, cy - 4);
+      ctx.font = '12px system-ui, Arial';
+      ctx.fillText(`${total} calls`, cx, cy + 14);
+    }
+
+    // Reports
+    function generateReport() {
+      const type = $('#reportType').value;
+      const typeFilter = $('#reportTypeFilter').value;
+      const outcomeFilter = $('#reportOutcomeFilter').value;
+      const includeDetails = $('#reportIncludeDetails').checked;
+
+      let startDate, endDate;
+      const today = new Date();
+      if (type === 'daily') {
+        startDate = endDate = toLocalDateInput(today);
+      } else if (type === 'weekly') {
+        endDate = toLocalDateInput(today);
+        const start = new Date(today); start.setDate(start.getDate() - 6);
+        startDate = toLocalDateInput(start);
+      } else if (type === 'monthly') {
+        endDate = toLocalDateInput(today);
+        const start = new Date(today); start.setDate(start.getDate() - 29);
+        startDate = toLocalDateInput(start);
+      } else if (type === 'custom') {
+        startDate = $('#reportStartDate').value;
+        endDate = $('#reportEndDate').value;
+      } else if (type === 'agent') {
+        // default last 30 days for agent report if no custom dates set
+        startDate = $('#reportStartDate').value || toLocalDateInput(new Date(new Date().setDate(new Date().getDate()-29)));
+        endDate = $('#reportEndDate').value || toLocalDateInput(new Date());
+      }
+
+      const agentId = (type === 'agent') ? $('#reportAgentSelect').value : 'all';
+
+      if ((type === 'custom' || type === 'agent') && (!startDate || !endDate)) {
+        showToast('Please select a start and end date.');
+        return;
+      }
+      if (type === 'agent' && !agentId) {
+        showToast('Please select an agent for the Agent Performance report.');
+        return;
+      }
+
+      const selectedCalls = getDerivedCalls(calls).filter(c => {
+        const inDateRange = c.date >= startDate && c.date <= endDate;
+        const inAgent = (agentId === 'all' || c.agentId === agentId);
+        const inType = (typeFilter === 'all' || c.type === typeFilter);
+        const inOutcome = (outcomeFilter === 'all' || c.outcome === outcomeFilter);
+        return inDateRange && inAgent && inType && inOutcome;
+      });
+
+      // Build report
+      let html = '';
+      html += `<p><strong>Report Period:</strong> ${formatDateDisplay(startDate)} to ${formatDateDisplay(endDate)}</p>`;
+      if (type === 'agent') {
+        const ag = agents.find(a => a.id === agentId);
+        html += `<p><strong>Agent:</strong> ${ag ? ag.name : 'Unknown'}</p>`;
+      }
+      html += `<p><strong>Total Calls:</strong> ${selectedCalls.length}</p>`;
+      const totalDuration = selectedCalls.reduce((s, c) => s + c.duration, 0);
+      html += `<p><strong>Total Duration:</strong> ${totalDuration} minutes</p>`;
+      html += `<p><strong>Average Call Duration:</strong> ${selectedCalls.length ? (totalDuration / selectedCalls.length).toFixed(1) : 0} minutes</p>`;
+
+      // Type / Outcome breakdowns
+      const typeCounts = { Inbound:0, Outbound:0, Internal:0 };
+      const outcomeCounts = {};
+      selectedCalls.forEach(c => {
+        if (typeCounts[c.type] != null) typeCounts[c.type] += 1;
+        outcomeCounts[c.outcome] = (outcomeCounts[c.outcome] || 0) + 1;
+      });
+
+      html += `<h4 style="margin-top:12px;">Type Breakdown</h4><ul>`;
+      Object.keys(typeCounts).forEach(k => { html += `<li>${k}: ${typeCounts[k]}</li>`; });
+      html += `</ul>`;
+
+      html += `<h4 style="margin-top:12px;">Outcome Breakdown</h4><ul>`;
+      Object.keys(outcomeCounts).sort().forEach(k => { html += `<li>${k}: ${outcomeCounts[k]}</li>`; });
+      html += `</ul>`;
+
+      // Agent Performance
+      html += `<h4 style="margin-top:12px;">Agent Performance</h4>`;
+      html += `<div class="table-responsive"><table style="width:100%; margin-top:6px;"><thead><tr>
+        <th style="text-align:left;">Agent</th>
+        <th style="text-align:left;">Calls</th>
+        <th style="text-align:left;">Total Duration</th>
+        <th style="text-align:left;">Avg Duration</th>
+      </tr></thead><tbody>`;
+      agents.forEach(ag => {
+        const agCalls = selectedCalls.filter(c => c.agentId === ag.id);
+        if (agCalls.length > 0) {
+          const dur = agCalls.reduce((s, c) => s + c.duration, 0);
+          html += `<tr>
+            <td>${ag.name}</td>
+            <td>${agCalls.length}</td>
+            <td>${dur} min</td>
+            <td>${(dur / agCalls.length).toFixed(1)} min</td>
+          </tr>`;
+        }
+      });
+      html += `</tbody></table></div>`;
+
+      if (includeDetails && selectedCalls.length) {
+        html += `<h4 style="margin-top:12px;">Detailed Calls</h4>`;
+        html += `<div class="table-responsive"><table style="width:100%; margin-top:6px;"><thead><tr>
+          <th style="text-align:left;">Agent</th>
+          <th style="text-align:left;">Date</th>
+          <th style="text-align:left;">Time</th>
+          <th style="text-align:left;">Duration</th>
+          <th style="text-align:left;">Type</th>
+          <th style="text-align:left;">Outcome</th>
+          <th style="text-align:left;">Notes</th>
+        </tr></thead><tbody>`;
+        selectedCalls.sort((a,b) => a.datetime - b.datetime).forEach(c => {
+          html += `<tr>
+            <td>${c.agentName}</td>
+            <td>${formatDateDisplay(c.date)}</td>
+            <td>${c.time || '-'}</td>
+            <td>${c.duration} min</td>
+            <td>${c.type}</td>
+            <td>${c.outcome}</td>
+            <td>${escapeHtml(c.notes || '')}</td>
+          </tr>`;
+        });
+        html += `</tbody></table></div>`;
+      }
+
+      $('#reportContent').innerHTML = html;
+      $('#reportOutput').style.display = 'block';
+
+      // Store last selection for export convenience
+      $('#reportOutput').dataset.start = startDate;
+      $('#reportOutput').dataset.end = endDate;
+      $('#reportOutput').dataset.agent = agentId;
+      $('#reportOutput').dataset.type = typeFilter;
+      $('#reportOutput').dataset.outcome = outcomeFilter;
+    }
+
+    function exportCallsCSV(callsToExport, filenamePrefix = 'call_logs') {
+      let csv = 'Agent,Date,Time,Duration,Type,Outcome,Notes\n';
+      callsToExport.forEach(call => {
+        const ag = agents.find(a => a.id === call.agentId);
+        const row = [
+          (ag ? ag.name : 'Unknown'),
+          call.date || '',
+          call.time || '',
+          call.duration || 0,
+          call.type || '',
+          call.outcome || '',
+          (call.notes || '').replace(/"/g, '""')
+        ].map(v => `"${String(v)}"`).join(',');
+        csv += row + '\n';
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const todayStr = toLocalDateInput(new Date());
+      a.download = `${filenamePrefix}_${todayStr}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function exportAgentsCSV() {
+      let csv = 'Name,Email,Department,Created At\n';
+      agents.forEach(a => {
+        csv += `"${a.name}","${a.email}","${a.department}","${a.createdAt || ''}"\n`;
+      });
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `agents_${toLocalDateInput(new Date())}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function printReport() { window.print(); }
+
+    async function importCallsCSV(file) {
+      if (!file) { showToast('Please choose a CSV file first'); return; }
+      const text = await file.text();
+      const lines = text.split(/\r?\n/).filter(l => l.trim().length > 0);
+      if (lines.length <= 1) { showToast('CSV appears empty'); return; }
+
+      const header = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g,'').toLowerCase());
+      const findCol = (name) => header.indexOf(name.toLowerCase());
+      const idx = {
+        agent: findCol('agent'),
+        date: findCol('date'),
+        time: findCol('time'),
+        duration: findCol('duration'),
+        type: findCol('type'),
+        outcome: findCol('outcome'),
+        notes: findCol('notes'),
+      };
+      if (idx.agent < 0 || idx.date < 0 || idx.duration < 0 || idx.type < 0) {
+        showToast('CSV must include at least Agent, Date, Duration, Type columns');
+        return;
+      }
+
+      let imported = 0;
+      for (let i = 1; i < lines.length; i++) {
+        const row = parseCsvLine(lines[i]);
+        if (!row || row.length === 0) continue;
+
+        const agentName = (row[idx.agent] || '').replace(/^"|"$/g,'').trim();
+        const date = (row[idx.date] || '').replace(/^"|"$/g,'').trim();
+        const time = idx.time >= 0 ? (row[idx.time] || '').replace(/^"|"$/g,'').trim() : '';
+        const duration = safeNumber((row[idx.duration] || '').replace(/^"|"$/g,'').trim(), 0);
+        const type = (row[idx.type] || '').replace(/^"|"$/g,'').trim();
+        const outcome = idx.outcome >= 0 ? (row[idx.outcome] || '').replace(/^"|"$/g,'').trim() : 'Resolved';
+        const notes = idx.notes >= 0 ? (row[idx.notes] || '').replace(/^"|"$/g,'').trim() : '';
+
+        if (!agentName || !date || !duration || !type) continue;
+
+        // Ensure agent exists
+        let ag = agents.find(a => a.name.toLowerCase() === agentName.toLowerCase());
+        if (!ag) {
+          ag = { id: Date.now().toString() + i, name: agentName, email: `${slugify(agentName)}_${i}@example.com`, department: 'Imported', createdAt: new Date().toISOString() };
+          agents.push(ag);
+        }
+
+        const call = {
+          id: (Date.now() + i).toString(),
+          agentId: ag.id,
+          date,
+          time: time || '',
+          duration: Math.round(duration),
+          type,
+          outcome,
+          notes,
+          timestamp: new Date().toISOString()
+        };
+        calls.push(call);
+        imported++;
+      }
+
+      saveLS(STORAGE_KEYS.agents, agents);
+      saveLS(STORAGE_KEYS.calls, calls);
+      loadAgentsIntoUI();
+      updateDashboard();
+      updateRecentCallsUI(true);
+      updateAnalytics();
+      displayAgents();
+
+      showToast(`Imported ${imported} call(s)`);
+    }
+
+    function parseCsvLine(line) {
+      // Simple CSV parser supporting quotes
+      const result = [];
+      let current = '';
+      let inQuotes = false;
+      for (let i = 0; i < line.length; i++) {
+        const ch = line[i];
+        if (ch === '"' ) {
+          if (inQuotes && line[i+1] === '"') { current += '"'; i++; }
+          else inQuotes = !inQuotes;
+        } else if (ch === ',' && !inQuotes) {
+          result.push(current);
+          current = '';
+        } else {
+          current += ch;
+        }
+      }
+      result.push(current);
+      return result;
+    }
+    function slugify(s) {
+      return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    }
+
+    // Init and event bindings
+    document.addEventListener('DOMContentLoaded', () => {
+      initTheme();
+      loadData();
+
+      // Defaults
+      $('#callDate').value = toLocalDateInput(new Date());
+      $('#callTime').value = new Date().toTimeString().slice(0,5);
+      $('#analyticsEndDate').value = toLocalDateInput(new Date());
+      const start30 = new Date(); start30.setDate(start30.getDate() - 29);
+      $('#analyticsStartDate').value = toLocalDateInput(start30);
+
+      // Load agents into selects
+      loadAgentsIntoUI();
+      updateDashboard();
+      updateRecentCallsUI(true);
+
+      // Listeners
+      $('#callForm').addEventListener('submit', handleCallSubmit);
+      $('#agentForm').addEventListener('submit', handleAgentSubmit);
+      $('#editCallForm').addEventListener('submit', handleEditCallSubmit);
+      $('#editAgentForm').addEventListener('submit', handleEditAgentSubmit);
+
+      // Recent calls filters
+      $('#rcApplyFilters').addEventListener('click', () => {
+        rcState.filters.agentId = $('#rcFilterAgent').value;
+        rcState.filters.type = $('#rcFilterType').value;
+        rcState.filters.outcome = $('#rcFilterOutcome').value;
+        rcState.filters.start = $('#rcStartDate').value;
+        rcState.filters.end = $('#rcEndDate').value;
+        rcState.filters.search = $('#rcSearch').value.trim();
+        updateRecentCallsUI(true);
+      });
+      $('#rcResetFilters').addEventListener('click', () => {
+        rcState.filters = { agentId: 'all', type: 'all', outcome: 'all', start: '', end: '', search: '' };
+        $('#rcFilterAgent').value = 'all';
+        $('#rcFilterType').value = 'all';
+        $('#rcFilterOutcome').value = 'all';
+        $('#rcStartDate').value = '';
+        $('#rcEndDate').value = '';
+        $('#rcSearch').value = '';
+        updateRecentCallsUI(true);
+      });
+      $('#rcPageSize').addEventListener('change', e => {
+        rcState.pageSize = parseInt(e.target.value, 10) || 10;
+        updateRecentCallsUI(true);
+      });
+      $('#rcPrev').addEventListener('click', () => { rcState.page = Math.max(1, rcState.page - 1); updateRecentCallsUI(); });
+      $('#rcNext').addEventListener('click', () => { rcState.page = rcState.page + 1; updateRecentCallsUI(); });
+
+      // Header sorting
+      $$('#recentCallsTable th.sortable').forEach(th => {
+        th.addEventListener('click', () => {
+          const f = th.getAttribute('data-sort');
+          if (rcState.sort.field === f) {
+            rcState.sort.dir = rcState.sort.dir === 'asc' ? 'desc' : 'asc';
+          } else {
+            rcState.sort.field = f;
+            rcState.sort.dir = 'asc';
+          }
+          updateRecentCallsUI(true);
+        });
+      });
+
+      // Report controls
+      $('#reportType').addEventListener('change', () => {
+        const val = $('#reportType').value;
+        $('#customDateRange').style.display = (val === 'custom' || val === 'agent') ? 'flex' : 'none';
+        $('#reportAgentGroup').style.display = (val === 'agent') ? 'block' : 'none';
+      });
+      $('#reportSetThisMonth').addEventListener('click', () => {
+        const d = new Date();
+        const end = new Date(d.getFullYear(), d.getMonth() + 1, 0);
+        const start = new Date(d.getFullYear(), d.getMonth(), 1);
+        $('#reportStartDate').value = toLocalDateInput(start);
+        $('#reportEndDate').value = toLocalDateInput(end);
+      });
+      $('#generateReportBtn').addEventListener('click', generateReport);
+      $('#exportCsvBtn').addEventListener('click', () => {
+        // If a report has been generated, export that subset; otherwise export all
+        const ro = $('#reportOutput');
+        if (ro.style.display !== 'none') {
+          const start = ro.dataset.start;
+          const end = ro.dataset.end;
+          const agent = ro.dataset.agent || 'all';
+          const typeFilter = ro.dataset.type || 'all';
+          const outcomeFilter = ro.dataset.outcome || 'all';
+          const subset = calls.filter(c => {
+            const okDate = c.date >= start && c.date <= end;
+            const okAgent = (agent === 'all' || c.agentId === agent);
+            const okType = (typeFilter === 'all' || c.type === typeFilter);
+            const okOutcome = (outcomeFilter === 'all' || c.outcome === outcomeFilter);
+            return okDate && okAgent && okType && okOutcome;
+          });
+          exportCallsCSV(subset, 'report_calls');
+        } else {
+          exportCallsCSV(calls, 'call_logs');
+        }
+      });
+      $('#printReportBtn').addEventListener('click', printReport);
+      $('#importCsvBtn').addEventListener('click', () => importCallsCSV($('#importFile').files[0]));
+      $('#exportAgentsBtn').addEventListener('click', exportAgentsCSV);
+      $('#analyticsUpdateBtn').addEventListener('click', updateAnalytics);
+      $('#clearDataBtn').addEventListener('click', clearAllData);
+
+      // Close modals on backdrop click
+      window.addEventListener('click', (ev) => {
+        if (ev.target === $('#editModal')) closeEditModal();
+        if (ev.target === $('#editAgentModal')) closeEditAgentModal();
+      });
+
+      // Accessibility: allow Enter on tabs
+      $$('.tab').forEach(tab => tab.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tab.click(); }
+      }));
+    });
+  </script>
+
+
+</body></html>
